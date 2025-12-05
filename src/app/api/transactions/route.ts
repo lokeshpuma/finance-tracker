@@ -22,7 +22,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, amount, category, description, date } = body;
+    const { type, amount, category, description, date, attachments } = body;
 
     if (!type || !amount || !category || !description || !date) {
       return NextResponse.json(
@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
       date: new Date(date),
       createdAt: new Date(),
       updatedAt: new Date(),
+      ...(attachments && attachments.length > 0 && { attachments }),
     };
 
     const collection = await getTransactionsCollection();

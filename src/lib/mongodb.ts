@@ -40,6 +40,12 @@ export interface Transaction {
   date: Date;
   createdAt: Date;
   updatedAt: Date;
+  attachments?: Array<{
+    fileId: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+  }>;
 }
 
 export interface MonthlyAnalytics {

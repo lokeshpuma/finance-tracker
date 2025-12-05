@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
-import { Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Trash2, TrendingUp, TrendingDown, File, Download } from 'lucide-react';
 
 interface Transaction {
   _id: string;
@@ -17,6 +17,12 @@ interface Transaction {
   date: string;
   createdAt: string;
   updatedAt: string;
+  attachments?: Array<{
+    fileId: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+  }>;
 }
 
 interface TransactionListProps {
@@ -53,6 +59,25 @@ export default function TransactionList({ refreshTrigger }: TransactionListProps
       }
     } catch (error) {
       console.error('Failed to delete transaction:', error);
+    }
+  };
+
+  const downloadFile = async (fileId: string, fileName: string) => {
+    try {
+      const response = await fetch(`/api/upload?id=${fileId}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Failed to download file:', error);
     }
   };
 
@@ -105,11 +130,26 @@ export default function TransactionList({ refreshTrigger }: TransactionListProps
                         <TrendingDown className="h-4 w-4" />
                       )}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <div className="font-medium">{transaction.description}</div>
                       <div className="text-sm text-muted-foreground">
                         {transaction.category} • {format(new Date(transaction.date), 'MMM dd, yyyy')}
                       </div>
+                      {transaction.attachments && transaction.attachments.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {transaction.attachments.map((attachment, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => downloadFile(attachment.fileId, attachment.fileName)}
+                              className="flex items-center gap-1 px-2 py-1 text-xs bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                            >
+                              <File className="h-3 w-3" />
+                              <span>{attachment.fileName}</span>
+                              <Download className="h-3 w-3" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">

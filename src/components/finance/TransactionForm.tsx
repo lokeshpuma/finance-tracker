@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { Upload, X, File } from 'lucide-react';
 
 interface TransactionFormProps {
   onTransactionAdded: () => void;
@@ -42,6 +43,70 @@ export default function TransactionForm({ onTransactionAdded }: TransactionFormP
     date: new Date().toISOString().split('T')[0],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{
+    fileId: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+  }>>([]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        toast.error(`File ${file.name} exceeds 10MB limit`);
+        return false;
+      }
+      return true;
+    });
+    setSelectedFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async (transactionId?: string): Promise<Array<{
+    fileId: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+  }>> => {
+    const uploaded: Array<{
+      fileId: string;
+      fileName: string;
+      fileSize: number;
+      fileType: string;
+    }> = [];
+
+    for (const file of selectedFiles) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (transactionId) {
+          formData.append('transactionId', transactionId);
+        }
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          uploaded.push(result.data);
+        } else {
+          toast.error(`Failed to upload ${file.name}: ${result.error}`);
+        }
+      } catch (error) {
+        toast.error(`Failed to upload ${file.name}`);
+      }
+    }
+
+    return uploaded;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,12 +119,28 @@ export default function TransactionForm({ onTransactionAdded }: TransactionFormP
     setIsSubmitting(true);
     
     try {
+      // First, upload files if any
+      let attachments: Array<{
+        fileId: string;
+        fileName: string;
+        fileSize: number;
+        fileType: string;
+      }> = [];
+
+      if (selectedFiles.length > 0) {
+        attachments = await uploadFiles();
+      }
+
+      // Then create the transaction with file attachments
       const response = await fetch('/api/transactions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          attachments: attachments.length > 0 ? attachments : undefined,
+        }),
       });
 
       const result = await response.json();
@@ -73,6 +154,8 @@ export default function TransactionForm({ onTransactionAdded }: TransactionFormP
           description: '',
           date: new Date().toISOString().split('T')[0],
         });
+        setSelectedFiles([]);
+        setUploadedFiles([]);
         onTransactionAdded();
       } else {
         toast.error(result.error || 'Failed to add transaction');
@@ -166,6 +249,54 @@ export default function TransactionForm({ onTransactionAdded }: TransactionFormP
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="file">Attach Files (Optional)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="file"
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                accept="image/*,application/pdf,.csv,.xlsx,.xls"
+              />
+              <Label
+                htmlFor="file"
+                className="flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer hover:bg-accent transition-colors"
+              >
+                <Upload className="h-4 w-4" />
+                <span>Choose Files</span>
+              </Label>
+            </div>
+            {selectedFiles.length > 0 && (
+              <div className="mt-2 space-y-2">
+                {selectedFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-muted rounded-md"
+                  >
+                    <div className="flex items-center gap-2">
+                      <File className="h-4 w-4" />
+                      <span className="text-sm">{file.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({(file.size / 1024).toFixed(2)} KB)
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(index)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
