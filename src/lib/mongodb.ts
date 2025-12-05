@@ -1,7 +1,11 @@
 import { MongoClient, Db, Collection } from 'mongodb';
 
-const MONGO_URI = 'mongodb+srv://puma:Lokesh%401@finance.yiwjcup.mongodb.net/finance?retryWrites=true&w=majority&appName=finance';
-const DB_NAME = 'finance';
+const MONGO_URI = process.env.MONGODB_URI || '';
+const DB_NAME = process.env.MONGODB_DB_NAME || 'finance';
+
+if (!MONGO_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable inside .env');
+}
 
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
