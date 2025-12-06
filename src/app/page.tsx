@@ -7,6 +7,7 @@ import TransactionForm from '@/components/finance/TransactionForm';
 import TransactionList from '@/components/finance/TransactionList';
 import AnalyticsDashboard from '@/components/finance/AnalyticsDashboard';
 import { Wallet, TrendingUp, BarChart3 } from 'lucide-react';
+import { SonnerToasterWrapper } from '@/components/ui/sonner-wrapper';
 
 export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -82,6 +83,7 @@ export default function Home() {
           <p>© 2024 Personal Finance Tracker. Built with Next.js and MongoDB.</p>
         </div>
       </footer>
+      <SonnerToasterWrapper />
     </div>
   );
 }
