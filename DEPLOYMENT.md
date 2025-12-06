@@ -103,3 +103,4 @@ For local development:
 - Render free tier spins down after 15 minutes of inactivity
 - Consider upgrading to a paid plan for production use
 
+
