@@ -2,7 +2,14 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import dynamic from "next/dynamic";
+
+const SonnerToaster = dynamic(
+  () => import("@/components/ui/sonner").then((mod) => mod.Toaster),
+  {
+    ssr: false,
+  }
+);
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
