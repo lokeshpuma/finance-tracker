@@ -2,14 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import dynamic from "next/dynamic";
-
-const SonnerToaster = dynamic(
-  () => import("@/components/ui/sonner").then((mod) => mod.Toaster),
-  {
-    ssr: false,
-  }
-);
+import { SonnerToasterWrapper } from "@/components/ui/sonner-wrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,7 +33,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster />
-        <SonnerToaster />
+        <SonnerToasterWrapper />
       </body>
     </html>
   );
