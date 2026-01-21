@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: "export",
+  basePath: "/finance-tracker",
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
