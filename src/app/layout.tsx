@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { Providers } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +16,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Personal Finance Tracker",
-  description: "Track your income, expenses, and financial analytics with our comprehensive finance management tool.",
-  keywords: ["Finance", "Tracker", "Income", "Expenses", "Analytics", "MongoDB", "Next.js"],
+  description:
+    "Track your income, expenses, and financial analytics with our comprehensive finance management tool.",
+  keywords: [
+    "Finance",
+    "Tracker",
+    "Income",
+    "Expenses",
+    "Analytics",
+    "MongoDB",
+    "Next.js",
+  ],
   authors: [{ name: "Finance Tracker Team" }],
 };
 
@@ -30,8 +40,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        {children}
-        <Toaster />
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );
